@@ -1,0 +1,57 @@
+pipeline {
+    agent {label 'ubuntu'}
+    options {
+        // Timeout counter starts AFTER agent is allocated
+        timeout(time: 900, unit: 'SECONDS')
+    }
+    stages {
+        stage('Example') {
+            steps {
+                sh 'echo "Hello $USER"'
+                sh 'docker version'
+            }
+        }
+        stage('Clean') {
+            steps {
+                echo 'Delete workspace'
+                deleteDir()
+            }
+        }
+        stage('Git checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/jollypig/test.docker.empl.git'
+            }
+        }
+        stage('Test') {
+            steps {
+                dir('lesson-1') {
+                    sh 'pwd'
+                    sh 'ls -la'
+                }
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
+        stage("Build project") {
+            steps {
+                withMaven {
+                    sh "mvn clean install"
+                } // withMaven will discover the generated Maven artifacts, JUnit Surefire & FailSafe reports and FindBugs reports
+            }
+        }
+        stage('Build docker stage') {
+            steps {
+                dir('lesson-1') {
+                    sh 'docker build -t siliconcreatures/demo-jenkins-emp:0.1 ..'
+                }
+            }
+        }
+        stage('Push docker image') {
+            steps {
+                withDockerRegistry(credentialsId: 'docker-hub-cred-sil', url: 'https://index.docker.io/v1/') {
+                    sh 'docker push siliconcreatures/demo-jenkins-emp:0.2'
+                }
+            }
+        }
+    }
+}
