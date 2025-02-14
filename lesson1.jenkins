@@ -42,7 +42,7 @@ pipeline {
         stage('Build docker stage') {
             steps {
                 dir('lesson-1') {
-                    sh 'docker build -t siliconcreatures/demo-jenkins-emp:0.1 ..'
+                    sh 'docker build -t siliconcreatures/demo-jenkins-emp:0.2 ..'
                 }
             }
         }
